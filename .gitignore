@@ -6,3 +6,19 @@
 /pkg/
 /spec/reports/
 /tmp/
+
+
+# byebug
+.byebug_history
+
+# Mac
+.DS_Store
+
+# dotenv
+*.local
+
+.tool-versions
+.ruby-version
+
+# JetBrains IDEs
+.idea/

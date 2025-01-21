@@ -1,23 +1,25 @@
 # frozen_string_literal: true
 
 require 'typhoeus'
+require 'ledger_sync'
+require 'base64'
+require 'json'
 
 module EbayBusinessApi
   class Client
-    attr_reader :client_id, :client_secret
+    attr_reader :client_id, :client_secret, :sandbox
 
-    include LedgerSync::Ledgers::Client::Mixin
-
-    def initialize(client_id:, client_secret:)
+    def initialize(client_id:, client_secret:, sandbox: false)
       @client_id = client_id
       @client_secret = client_secret
+      @sandbox = sandbox
     end
 
     def access_token
       response = Typhoeus.post(
-        'https://api.ebay.com/identity/v1/oauth2/token',
+        oauth_endpoint_url,
         { method: :post, headers: headers, body: body }
-      ).run
+      )
 
       data = parse_response(response)
 
@@ -27,6 +29,12 @@ module EbayBusinessApi
     end
 
     private
+
+    def oauth_endpoint_url
+      return ENV['EBAY_PROD_ENDPOINT'] unless sandbox
+
+      ENV['EBAY_SANDBOX_ENDPOINT']
+    end
 
     def headers
       {
@@ -42,11 +50,7 @@ module EbayBusinessApi
     def body
       {
         'grant_type' => 'client_credentials',
-        'scope' => [
-          'https://api.ebay.com/oauth/api_scope',
-          'https://api.ebay.com/oauth/api_scope/buy.order.readonly',
-          'https://api.ebay.com/oauth/api_scope/buy.guest.order'
-        ].join(' ')
+        'scope' => 'https://api.ebay.com/oauth/api_scope'
       }
     end
 
