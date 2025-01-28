@@ -8,7 +8,7 @@ require 'dotenv'
 # You can add fixtures and/or initialization code here to make experimenting
 # with your gem easier. You can also use a different console, if you like.
 
-Dotenv.load('.env.local')
+Dotenv.load('.env')
 
 require "irb"
 IRB.start(__FILE__)

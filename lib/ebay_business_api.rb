@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
-require_relative "ebay_business_api/version"
-require_relative "ebay_business_api/client"
+require 'ledger_sync'
 
 module EbayBusinessApi
-  class Error < StandardError; end
-  # Your code goes here...
+  def self.root(*paths)
+    File.join(File.expand_path('../..', __dir__), *paths.map(&:to_s))
+  end
 end
+
+require_relative 'ebay_business_api/config'
