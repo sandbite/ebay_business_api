@@ -9,6 +9,8 @@ module EbayBusinessApi
   class EbayBusinessApiError < StandardError; end
 
   class Client # rubocop:disable Metrics/ClassLength
+    include LedgerSync::Ledgers::Client::Mixin
+
     attr_reader :client_id, :client_secret, :redirect_uri, :sandbox
 
     BASE_SCOPES = [
