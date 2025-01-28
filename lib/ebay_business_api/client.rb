@@ -95,6 +95,18 @@ module EbayBusinessApi
       )
     end
 
+    def api(http_method, path, opts = {})
+      request = LedgerSync::Ledgers::Request.new(
+        body: opts.fetch(:body, nil),
+        headers:  api_request_headers.merge(opts.fetch(:headers, {})),
+        method: http_method,
+        url: api_endpoint_url + path,
+        params: opts.fetch(:form_params, {})
+      )
+
+      request.perform
+    end
+
     private
 
     def validate_credentials!
@@ -126,10 +138,21 @@ module EbayBusinessApi
       sandbox ? ENV['CONSENT_EBAY_SANDBOX_URL'] : ENV['CONSENT_EBAY_PROD_URL']
     end
 
+    def api_endpoint_url
+      sandbox ? ENV['EBAY_API_SANDBOX_ENDPOINT'] : ENV['EBAY_API_ENDPOINT']
+    end
+
     def headers
       {
         'Content-Type' => 'application/x-www-form-urlencoded',
         'Authorization' => "Basic #{encoded_credentials}"
+      }
+    end
+
+    def api_request_headers
+      {
+        'Authorization' => "Bearer #{application_access_token}",
+        'X-EBAY-C-MARKETPLACE-ID' => 'EBAY_US'
       }
     end
 
