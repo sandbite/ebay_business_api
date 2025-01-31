@@ -68,3 +68,12 @@ client.build_consent_uri
 # Second step, once you received the authorization_code on your callback controller action
 client.user_access_token(authorization_code)
 ```
+
+## Browse API
+If you want to search in eBay's catalog, you need to use this API.
+
+```ruby
+resource = EbayBusinessApi::Browse.new(q: 'drone')
+operation = EbayBusinessApi::Browse::Operations::Search.new(client: client, resource: resource)
+operation.perform
+```
