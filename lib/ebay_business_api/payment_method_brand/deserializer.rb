@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
 module EbayBusinessApi
-  class Price
+  class PaymentMethodBrand
     class Deserializer < EbayBusinessApi::Deserializer
-      attribute :value, hash_attribute: :value
-      attribute :currency, hash_attribute: :currency
+      attribute :payment_method_brand_type, hash_attribute: :paymentMethodBrandType
     end
   end
 end

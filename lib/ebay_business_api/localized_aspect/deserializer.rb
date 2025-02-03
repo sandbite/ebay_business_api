@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 module EbayBusinessApi
-  class Price
+  class LocalizedAspect
     class Deserializer < EbayBusinessApi::Deserializer
+      attribute :type, hash_attribute: :type
+      attribute :name, hash_attribute: :name
       attribute :value, hash_attribute: :value
-      attribute :currency, hash_attribute: :currency
     end
   end
 end
