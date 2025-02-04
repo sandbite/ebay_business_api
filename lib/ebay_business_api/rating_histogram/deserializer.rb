@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 module EbayBusinessApi
-  class Price
+  class RatingHistogram
     class Deserializer < EbayBusinessApi::Deserializer
-      attribute :value, hash_attribute: :value
-      attribute :currency, hash_attribute: :currency
+      attribute :rating, hash_attribute: :rating
+      attribute :count, hash_attribute: :count
     end
   end
 end

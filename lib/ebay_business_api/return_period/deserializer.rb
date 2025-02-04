@@ -1,10 +1,8 @@
-# frozen_string_literal: true
-
 module EbayBusinessApi
-  class Price
+  class ReturnPeriod
     class Deserializer < EbayBusinessApi::Deserializer
       attribute :value, hash_attribute: :value
-      attribute :currency, hash_attribute: :currency
+      attribute :unit, hash_attribute: :unit
     end
   end
 end

@@ -69,11 +69,20 @@ client.build_consent_uri
 client.user_access_token(authorization_code)
 ```
 
-## Browse API
+## Browse API (Search)
 If you want to search in eBay's catalog, you need to use this API.
 
 ```ruby
 resource = EbayBusinessApi::Browse.new(q: 'drone')
 operation = EbayBusinessApi::Browse::Operations::Search.new(client: client, resource: resource)
+operation.perform
+```
+
+## Browse API (Find)
+If you want to find by Item ID in eBay's catalog, you need to use this API.
+
+```ruby
+resource = EbayBusinessApi::GetItem.new(item_id: 'v1|145536784037|0')
+operation = EbayBusinessApi::GetItem::Operations::Find.new(client: client, resource: resource)
 operation.perform
 ```
