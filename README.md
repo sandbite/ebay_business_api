@@ -86,3 +86,64 @@ resource = EbayBusinessApi::GetItem.new(item_id: 'v1|145536784037|0')
 operation = EbayBusinessApi::GetItem::Operations::Find.new(client: client, resource: resource)
 operation.perform
 ```
+
+## Order V1 API (Initiate Checkout)
+
+This method creates an eBay member checkout session, which is the first step in performing a checkout. You use this method to create a checkout session before you can process a checkout. If the address submitted cannot be validated, a warning message will be returned.
+
+The method returns a checkoutSessionId that you use as a URI parameter in subsequent checkout methods.
+
+```ruby
+billing_address = EbayBusinessApi::BillingAddress.new(
+  addressLine1: "Al Mezan Tower",
+  addressLine2: "Muhaisnah 4",
+  city: "Dubai",
+  country: "AE",
+  county: "UAE",
+  firstName: "Jean-Michel",
+  lastName: "KEULEYAN",
+  postalCode: "11111",
+  stateOrProvince: "Dubai"
+)
+
+credit_card = EbayBusinessApi::CreditCard.new(
+  accountHolderName: 'Jean Michel',
+  billingAddress: billing_address
+  brand: "VISA",
+  cardNumber: "123456789",
+  cvvNumber: "123",
+  expireMonth: "10",
+  expireYear: "28"
+)
+
+shipping_address = EbayBusinessApi::ShippingAddress.new(
+   addressLine1: "Al Mezan Tower",
+   addressLine2: "Muhaisnah 4",
+   city: "Dubai",
+   stateOrProvince: "Dubai",
+   postalCode: "11111",
+   country: "AE",
+   recipient: "Jean Michel",
+   phoneNumber: "+971505050505"
+)
+
+line_item_inputs = [
+  EbayBusinessApi::LineItemInput.new(
+    quantity: 1,
+    itemId: 'v1|145536784037|0'
+  ),
+  EbayBusinessApi::LineItemInput.new(
+    quantity: 3,
+    itemId: 'v1|186817959148|694968964482'
+  )
+]
+
+EbayBusinessApi::CheckoutSession.new(
+  creditCard: credit_card,
+  shippingAddress: shipping_address,
+  lineItemInputs: line_item_inputs
+)
+
+operation = EbayBusinessApi::GetItem::Operations::Find.new(client: client, resource: resource)
+operation.perform
+```

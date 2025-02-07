@@ -4,7 +4,7 @@ require_relative '../operation'
 
 module EbayBusinessApi
   class Operation
-    class Find
+    class Create
       include EbayBusinessApi::Operation::Mixin
 
       def operate
@@ -22,7 +22,7 @@ module EbayBusinessApi
       private
 
       def request_method
-        :get
+        :post
       end
 
       def response
@@ -43,7 +43,7 @@ module EbayBusinessApi
 
       def error
         errors = response.body&.[]('errors')
-        return StandardError.new('Ebay Business API request failed') if errors.nil?
+        return StandardError.new('Ebay Business Api request failed') if errors.nil?
 
         message = errors.map do |error|
           "#{error['code']}: #{error['message']}"
