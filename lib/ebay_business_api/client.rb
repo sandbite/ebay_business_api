@@ -11,8 +11,11 @@ module EbayBusinessApi
   class Client # rubocop:disable Metrics/ClassLength
     include LedgerSync::Ledgers::Client::Mixin
 
-    attr_reader :client_id, :client_secret, :redirect_uri, :sandbox
+    attr_reader :client_id, :client_secret, :redirect_uri
 
+    EBAY_OAUTH_EBAY_ENDPOINT = 'https://api.ebay.com/identity/v1/oauth2/token'
+    EBAY_CONSENT_EBAY_URL = 'auth.ebay.com'
+    EBAY_EBAY_API_ENDPOINT = 'https://api.ebay.com'
     BASE_SCOPES = [
       'https://api.ebay.com/oauth/api_scope/buy.order.readonly',
       'https://api.ebay.com/oauth/api_scope/buy.order',
@@ -20,13 +23,10 @@ module EbayBusinessApi
       'https://api.ebay.com/oauth/api_scope/commerce.identity.readonly'
     ].join(' ').freeze
 
-    def initialize(sandbox: false)
-      @client_id = sandbox ? ENV['CLIENT_ID_SANDBOX'] : ENV['CLIENT_ID']
-      @client_secret = sandbox ? ENV['CLIENT_SECRET_SANDBOX'] : ENV['CLIENT_SECRET']
-      @redirect_uri = sandbox ? ENV['REDIRECT_URI_SANDBOX'] : ENV['REDIRECT_URI']
-      @sandbox = sandbox
-
-      validate_credentials!
+    def initialize
+      @client_id = setting('ebay_client_id')
+      @client_secret = setting('ebay_client_secret')
+      @redirect_uri = setting('ebay_redirect_uri')
     end
 
     # Application Token Flow
@@ -36,10 +36,14 @@ module EbayBusinessApi
     # It doesn't give rights to do some user-related actions (Buying, Selling...)
     # https://developer.ebay.com/api-docs/static/oauth-client-credentials-grant.html
     def application_access_token
-      @application_access_token = post_request_oauth_endpoint(headers, access_token_body)[:access_token]
+      application_access_data[:access_token]
     end
 
-    # Credentials Grant Flow
+    def application_access_data
+      post_request_oauth_endpoint(headers, access_token_body)
+    end
+
+    # User Grant Flow
     # This is a two-step flow. It generates an url first and then a token.
     # With the final token, you can do all user-related actions (Buying, Selling...)
     # https://developer.ebay.com/api-docs/static/oauth-authorization-code-grant.html
@@ -49,7 +53,7 @@ module EbayBusinessApi
     # .. he authorizes our eBay app to use his account to do some API actions.
     def consent_uri
       URI::HTTPS.build(
-        host: consent_endpoint_url,
+        host: EBAY_CONSENT_EBAY_URL,
         path: '/oauth2/authorize',
         query: URI.encode_www_form(
           client_id: client_id, locale: 'en-US',
@@ -61,10 +65,14 @@ module EbayBusinessApi
 
     # Step 2: Retrieve user access token with authorization code from Step 1
     def user_access_token(authorization_code)
-      @user_access_token = post_request_oauth_endpoint(
+      user_access_data(authorization_code)[:access_token]
+    end
+
+    def user_access_data(authorization_code)
+      post_request_oauth_endpoint(
         headers,
         authorization_code_body(authorization_code)
-      )[:access_token]
+      )
     end
 
     def api(http_method, path, opts = {})
@@ -74,7 +82,7 @@ module EbayBusinessApi
         body: opts.fetch(:body, nil),
         headers:  api_request_headers(api_type).merge(opts.fetch(:headers, {})),
         method: http_method,
-        url: api_endpoint_url + path,
+        url: EBAY_EBAY_API_ENDPOINT + path,
         params: opts.fetch(:form_params, {})
       )
 
@@ -83,37 +91,16 @@ module EbayBusinessApi
 
     private
 
-    def validate_credentials!
-      if client_id.nil? || client_secret.nil? || redirect_uri.nil?
-        raise '[eBay Business API] Set-up eBay credentials before using this gem !'
-      end
-
-      true
-    end
-
     def post_request_oauth_endpoint(headers, body)
       response = Typhoeus.post(
-        oauth_endpoint_url,
+        EBAY_OAUTH_EBAY_ENDPOINT,
         { method: :post, headers: headers, body: body }
       )
 
       data = parse_response(response)
 
       raise_error(response, data) unless data[:access_token]
-
       data
-    end
-
-    def oauth_endpoint_url
-      sandbox ? ENV['OAUTH_EBAY_SANDBOX_ENDPOINT'] : ENV['OAUTH_EBAY_PROD_ENDPOINT']
-    end
-
-    def consent_endpoint_url
-      sandbox ? ENV['CONSENT_EBAY_SANDBOX_URL'] : ENV['CONSENT_EBAY_PROD_URL']
-    end
-
-    def api_endpoint_url
-      sandbox ? ENV['EBAY_API_SANDBOX_ENDPOINT'] : ENV['EBAY_API_ENDPOINT']
     end
 
     def headers
@@ -148,6 +135,11 @@ module EbayBusinessApi
         'code' => authorization_code,
         'redirect_uri' => redirect_uri
       }
+    end
+
+    def setting(key)
+      Setting[key] ||
+        raise(EbayBusinessApiError, "Please set #{key} in DB settings !")
     end
 
     def parse_response(response)

@@ -46,9 +46,9 @@ The eBay API uses an OAuth 2.0 authentication process to allow applications to s
 - It is valid for 2 hours and allows actions like pulling public data (e.g., product details, pricing, etc.).
 - Limitations: It cannot be used for actions that require user permissions, such as buying or selling items.
 
-How to get a token:
+How to get a token and its expiration date:
 ```ruby
-client.application_access_token
+client.application_access_data
 ```
 
 ### 2. User Access Token (Authorization Code Grant Flow)
