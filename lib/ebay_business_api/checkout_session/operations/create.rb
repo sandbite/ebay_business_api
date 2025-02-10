@@ -12,7 +12,8 @@ module EbayBusinessApi
 
         def opts
           {
-            body: serializer.serialize(resource:)
+            body: serializer.serialize(resource:),
+            api_type: :write
           }
         end
       end

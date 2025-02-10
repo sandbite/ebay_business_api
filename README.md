@@ -63,7 +63,7 @@ Once obtained, the user access token can be used to perform user-specific action
 How to get a token:
 ```ruby
 # First step, generate the grant url
-client.build_consent_uri
+client.consent_uri
 
 # Second step, once you received the authorization_code on your callback controller action
 client.user_access_token(authorization_code)
@@ -95,55 +95,55 @@ The method returns a checkoutSessionId that you use as a URI parameter in subseq
 
 ```ruby
 billing_address = EbayBusinessApi::BillingAddress.new(
-  addressLine1: "Al Mezan Tower",
-  addressLine2: "Muhaisnah 4",
+  address_line1: "Al Mezan Tower",
+  address_line2: "Muhaisnah 4",
   city: "Dubai",
   country: "AE",
   county: "UAE",
-  firstName: "Jean-Michel",
-  lastName: "KEULEYAN",
-  postalCode: "11111",
-  stateOrProvince: "Dubai"
+  first_name: "Jean-Michel",
+  last_name: "KEULEYAN",
+  postal_code: "11111",
+  state_or_province: "Dubai"
 )
 
 credit_card = EbayBusinessApi::CreditCard.new(
-  accountHolderName: 'Jean Michel',
-  billingAddress: billing_address
+  account_holder_name: 'Jean Michel',
+  billing_address: billing_address
   brand: "VISA",
-  cardNumber: "123456789",
-  cvvNumber: "123",
-  expireMonth: "10",
-  expireYear: "28"
+  card_number: "123456789",
+  cvv_number: "123",
+  expire_month: "10",
+  expire_year: "28"
 )
 
+client = EbayBusinessApi::Client.new
 shipping_address = EbayBusinessApi::ShippingAddress.new(
-   addressLine1: "Al Mezan Tower",
-   addressLine2: "Muhaisnah 4",
+   address_line1: "Al Mezan Tower",
+   address_line2: "Muhaisnah 4",
    city: "Dubai",
-   stateOrProvince: "Dubai",
-   postalCode: "11111",
+   state_or_province: "Dubai",
+   postal_code: "11111",
    country: "AE",
    recipient: "Jean Michel",
-   phoneNumber: "+971505050505"
+   phone_number: "+971505050505"
 )
 
 line_item_inputs = [
   EbayBusinessApi::LineItemInput.new(
-    quantity: 1,
-    itemId: 'v1|145536784037|0'
+    quantity: '1',
+    item_id: 'v1|145536784037|0'
   ),
   EbayBusinessApi::LineItemInput.new(
-    quantity: 3,
-    itemId: 'v1|186817959148|694968964482'
+    quantity: '3',
+    item_id: 'v1|373530480350|0'
   )
 ]
 
-EbayBusinessApi::CheckoutSession.new(
-  creditCard: credit_card,
-  shippingAddress: shipping_address,
-  lineItemInputs: line_item_inputs
+resource = EbayBusinessApi::CheckoutSession.new(
+  shipping_address: shipping_address,
+  line_item_inputs: line_item_inputs
 )
 
-operation = EbayBusinessApi::GetItem::Operations::Find.new(client: client, resource: resource)
+operation = EbayBusinessApi::CheckoutSession::Operations::Create.new(client: client, resource: resource)
 operation.perform
 ```
