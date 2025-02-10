@@ -14,38 +14,10 @@ module EbayBusinessApi
     attr_reader :client_id, :client_secret, :redirect_uri, :sandbox
 
     BASE_SCOPES = [
-      'https://api.ebay.com/oauth/api_scope',
       'https://api.ebay.com/oauth/api_scope/buy.order.readonly',
-      'https://api.ebay.com/oauth/api_scope/buy.guest.order',
-      'https://api.ebay.com/oauth/api_scope/sell.marketing.readonly',
-      'https://api.ebay.com/oauth/api_scope/sell.marketing',
-      'https://api.ebay.com/oauth/api_scope/sell.inventory.readonly',
-      'https://api.ebay.com/oauth/api_scope/sell.inventory',
-      'https://api.ebay.com/oauth/api_scope/sell.account.readonly',
-      'https://api.ebay.com/oauth/api_scope/sell.account',
-      'https://api.ebay.com/oauth/api_scope/sell.fulfillment.readonly',
-      'https://api.ebay.com/oauth/api_scope/sell.fulfillment',
-      'https://api.ebay.com/oauth/api_scope/sell.analytics.readonly',
-      'https://api.ebay.com/oauth/api_scope/sell.marketplace.insights.readonly',
+      'https://api.ebay.com/oauth/api_scope/buy.order',
       'https://api.ebay.com/oauth/api_scope/commerce.catalog.readonly',
-      'https://api.ebay.com/oauth/api_scope/buy.shopping.cart',
-      'https://api.ebay.com/oauth/api_scope/buy.offer.auction',
-      'https://api.ebay.com/oauth/api_scope/commerce.identity.readonly',
-      'https://api.ebay.com/oauth/api_scope/commerce.identity.email.readonly',
-      'https://api.ebay.com/oauth/api_scope/commerce.identity.phone.readonly',
-      'https://api.ebay.com/oauth/api_scope/commerce.identity.address.readonly',
-      'https://api.ebay.com/oauth/api_scope/commerce.identity.name.readonly',
-      'https://api.ebay.com/oauth/api_scope/commerce.identity.status.readonly',
-      'https://api.ebay.com/oauth/api_scope/sell.finances',
-      'https://api.ebay.com/oauth/api_scope/sell.payment.dispute',
-      'https://api.ebay.com/oauth/api_scope/sell.item.draft',
-      'https://api.ebay.com/oauth/api_scope/sell.item',
-      'https://api.ebay.com/oauth/api_scope/sell.reputation',
-      'https://api.ebay.com/oauth/api_scope/sell.reputation.readonly',
-      'https://api.ebay.com/oauth/api_scope/commerce.notification.subscription',
-      'https://api.ebay.com/oauth/api_scope/commerce.notification.subscription.readonly',
-      'https://api.ebay.com/oauth/api_scope/sell.stores',
-      'https://api.ebay.com/oauth/api_scope/sell.stores.readonly'
+      'https://api.ebay.com/oauth/api_scope/commerce.identity.readonly'
     ].join(' ').freeze
 
     def initialize(sandbox: false)
@@ -64,7 +36,7 @@ module EbayBusinessApi
     # It doesn't give rights to do some user-related actions (Buying, Selling...)
     # https://developer.ebay.com/api-docs/static/oauth-client-credentials-grant.html
     def application_access_token
-      @application_access_token ||= post_request_oauth_endpoint(headers, access_token_body)
+      @application_access_token = post_request_oauth_endpoint(headers, access_token_body)[:access_token]
     end
 
     # Credentials Grant Flow
@@ -75,7 +47,7 @@ module EbayBusinessApi
     # Step 1: Generate oAuth URL
     # This method returns an URL. Once the eBay user navigates to this URL..
     # .. he authorizes our eBay app to use his account to do some API actions.
-    def build_consent_uri
+    def consent_uri
       URI::HTTPS.build(
         host: consent_endpoint_url,
         path: '/oauth2/authorize',
@@ -89,16 +61,18 @@ module EbayBusinessApi
 
     # Step 2: Retrieve user access token with authorization code from Step 1
     def user_access_token(authorization_code)
-      @user_access_token ||= post_request_oauth_endpoint(
+      @user_access_token = post_request_oauth_endpoint(
         headers,
         authorization_code_body(authorization_code)
-      )
+      )[:access_token]
     end
 
     def api(http_method, path, opts = {})
+      api_type = opts.fetch(:api_type, :read)
+
       request = LedgerSync::Ledgers::Request.new(
         body: opts.fetch(:body, nil),
-        headers:  api_request_headers.merge(opts.fetch(:headers, {})),
+        headers:  api_request_headers(api_type).merge(opts.fetch(:headers, {})),
         method: http_method,
         url: api_endpoint_url + path,
         params: opts.fetch(:form_params, {})
@@ -127,7 +101,7 @@ module EbayBusinessApi
 
       raise_error(response, data) unless data[:access_token]
 
-      data[:access_token]
+      data
     end
 
     def oauth_endpoint_url
@@ -149,9 +123,10 @@ module EbayBusinessApi
       }
     end
 
-    def api_request_headers
+    def api_request_headers(api_type)
+      token = api_type == :read ? application_access_token : user_access_token
       {
-        'Authorization' => "Bearer #{application_access_token}",
+        'Authorization' => "Bearer #{token}",
         'X-EBAY-C-MARKETPLACE-ID' => 'EBAY_US'
       }
     end
