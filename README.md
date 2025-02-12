@@ -1,3 +1,5 @@
+## ℹ️ GEM INTEGRATED DIRECTLY IN DROPBOT CODEBASE: https://github.com/sandbite/dropbot/pull/1427
+
 # EbayBusinessApi
 
 A gem to interact with eBay API using LedgerSync operations.
